@@ -207,7 +207,11 @@ defmodule Paginator do
       iex> Paginator.cursor_for_record(%Paginator.Customer{id: 1, name: "Alice"}, [id: :asc, name: :desc])
       "g3QAAAACZAACaWRhAWQABG5hbWVtAAAABUFsaWNl"
   """
-  @spec cursor_for_record(any(), [atom() | {atom(), atom()}], (map(), atom() | {atom(), atom()} -> any())) :: binary()
+  @spec cursor_for_record(
+          any(),
+          [atom() | {atom(), atom()}],
+          (map(), atom() | {atom(), atom()} -> any())
+        ) :: binary()
   def cursor_for_record(
         record,
         cursor_fields,
@@ -305,6 +309,12 @@ defmodule Paginator do
        }) do
     cursor_fields
     |> Enum.map(fn
+      {{cursor_field, func}, _order} when is_atom(cursor_field) and is_function(func) ->
+        {cursor_field, fetch_cursor_value_fun.(schema, cursor_field)}
+
+      {cursor_field, func} when is_atom(cursor_field) and is_function(func) ->
+        {cursor_field, fetch_cursor_value_fun.(schema, cursor_field)}
+
       {cursor_field, _order} ->
         {cursor_field, fetch_cursor_value_fun.(schema, cursor_field)}
 
